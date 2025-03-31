@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venture Fund Simulator</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Chart.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Original Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/custom-styles.css">
+</head>
+<body>
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-line me-2"></i>Venture Fund Simulator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="game-phases">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" data-phase="setup">
+                            <i class="fas fa-cog me-1"></i> Setup
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-phase="simulation">
+                            <i class="fas fa-play me-1"></i> Simulation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-phase="results">
+                            <i class="fas fa-trophy me-1"></i> Results
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container-fluid mt-5">
+
+
+
+        <div class="row">
+            <!-- Game Phases Navigation -->
+            <div class="col-md-3 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Game Phases
+                    </div>
+                    <div class="list-group list-group-flush" id="game-phases">
+                        <a href="#" class="list-group-item list-group-item-action active" data-phase="setup">Fund Setup</a>
+                        <a href="#" class="list-group-item list-group-item-action disabled" data-phase="simulation">Simulation</a>
+                        <a href="#" class="list-group-item list-group-item-action" data-phase="results">Results</a>
+                    </div>
+                </div>
+
+                <!-- Fund Dashboard (visible during simulation) -->
+                <div class="card mt-4 d-none" id="fund-dashboard">
+                    <div class="card-header bg-success text-white">
+                        Fund Dashboard
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Year:</strong> <span id="current-year">1</span> of 5</p>
+                        <p><strong>Quarter:</strong> <span id="current-quarter">1</span></p>
+                        <p><strong>Available Capital:</strong> $<span id="available-capital">0</span>M</p>
+                        <p><strong>Portfolio Companies:</strong> <span id="portfolio-count">0</span></p>
+                        <p><strong>Current IRR:</strong> <span id="current-irr">0</span>%</p>
+                        <p><strong>Current MOIC:</strong> <span id="current-moic">0</span>x</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-md-9">
+                <!-- Fund Setup Phase -->
+                <div id="setup-phase" class="game-phase active">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            Fund Setup
+                        </div>
+                        <div class="card-body">
+                            <form id="fund-setup-form">
+                                <!-- Fund Thesis -->
+                                <div class="mb-4">
+                                    <h4><i class="fas fa-lightbulb me-2 text-warning"></i>Fund Thesis</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fund-name" class="form-label">Fund Name</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-signature"></i></span>
+                                                <input type="text" class="form-control" id="fund-name" placeholder="e.g., Horizon Ventures" value="My Venture Fund" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="industry-focus" class="form-label">Industry Focus</label>
+                                            <select class="form-select" id="industry-focus" multiple required aria-label="Select industry focus areas">
+                                                <option value="tech">Technology</option>
+                                                <option value="biotech">Biotech</option>
+                                                <option value="cleantech">Clean Energy</option>
+                                                <option value="fintech">Fintech</option>
+                                                <option value="consumer">Consumer</option>
+                                                <option value="enterprise">Enterprise</option>
+                                            </select>
+                                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="geo-focus" class="form-label">Geographical Focus</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-globe-americas"></i></span>
+                                                <select class="form-select" id="geo-focus" required>
+                                                    <option value="global">Global</option>
+                                                    <option value="north-america">North America</option>
+                                                    <option value="europe">Europe</option>
+                                                    <option value="asia">Asia</option>
+                                                    <option value="latam">Latin America</option>
+                                                    <option value="ireland">Ireland</option>
+                                                    <option value="n-ireland">Northern Ireland</option>
+                                                    <option value="cork">Cork</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-text">Each region has unique market dynamics and regulatory environments</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="stage-focus" class="form-label">Stage Focus</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-rocket"></i></span>
+                                                <select class="form-select" id="stage-focus" required>
+                                                    <option value="seed">Seed</option>
+                                                    <option value="series-a">Series A</option>
+                                                    <option value="series-b">Series B</option>
+                                                    <option value="growth">Growth</option>
+                                                    <option value="multi-stage">Multi-stage</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-text">Earlier stages have higher risk but potentially higher returns</div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="fund-differentiator" class="form-label">Fund Differentiator</label>
+                                        <textarea class="form-control" id="fund-differentiator" rows="2" placeholder="What makes your fund unique?"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Fund Size & Economics -->
+                                <div class="mb-4">
+                                    <h4><i class="fas fa-money-bill-wave me-2 text-success"></i>Fund Size & Economics</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="fund-size" class="form-label">Fund Size ($M)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                                <input type="number" class="form-control" id="fund-size" min="10" max="1000" value="100" required>
+                                                <span class="input-group-text">million</span>
+                                            </div>
+                                            <div class="form-text">Total capital to be deployed over the fund's lifecycle</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="check-size" class="form-label">Average Check Size ($M)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-file-invoice-dollar"></i></span>
+                                                <input type="number" class="form-control" id="check-size" min="0.1" max="50" step="0.1" value="2" required>
+                                                <span class="input-group-text">million</span>
+                                            </div>
+                                            <div class="form-text">Typical investment amount per company</div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="management-fee" class="form-label">Management Fee (%)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="management-fee" min="1" max="5" step="0.25" value="2" required>
+                                                <span class="input-group-text"><i class="fas fa-percentage"></i></span>
+                                            </div>
+                                            <div class="form-text">Annual fee charged to LPs for fund operations</div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="carried-interest" class="form-label">Carried Interest (%)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="carried-interest" min="10" max="30" step="1" value="20" required>
+                                                <span class="input-group-text"><i class="fas fa-percentage"></i></span>
+                                            </div>
+                                            <div class="form-text">Your share of profits above the hurdle rate</div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="target-irr" class="form-label">Target IRR (%)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="target-irr" min="10" max="50" step="1" value="25" required>
+                                                <span class="input-group-text"><i class="fas fa-percentage"></i></span>
+                                            </div>
+                                            <div class="form-text">Annual return target for your LPs</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Investment Strategy -->
+                                <div class="mb-4">
+                                    <h4><i class="fas fa-chess me-2 text-primary"></i>Investment Strategy</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="target-investments" class="form-label">Target Number of Investments</label>
+                                            <input type="number" class="form-control" id="target-investments" min="5" max="100" value="20" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="followon-reserve" class="form-label">Follow-on Reserve (%)</label>
+                                            <input type="number" class="form-control" id="followon-reserve" min="0" max="70" value="30" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="risk-tolerance" class="form-label">Risk Tolerance</label>
+                                        <div class="range">
+                                            <input type="range" class="form-range" id="risk-tolerance" min="1" max="10" value="5">
+                                            <div class="d-flex justify-content-between">
+                                                <span>Conservative</span>
+                                                <span>Balanced</span>
+                                                <span>Aggressive</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Investment Criteria -->
+                                <div class="mb-4">
+                                    <h4><i class="fas fa-balance-scale me-2 text-info"></i>Investment Criteria</h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="team-weight" class="form-label">Team Quality</label>
+                                            <input type="number" class="form-control criteria-weight" id="team-weight" min="0" max="100" value="30" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="market-weight" class="form-label">Market Size & Potential</label>
+                                            <input type="number" class="form-control criteria-weight" id="market-weight" min="0" max="100" value="25" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="traction-weight" class="form-label">Traction & Metrics</label>
+                                            <input type="number" class="form-control criteria-weight" id="traction-weight" min="0" max="100" value="20" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="product-weight" class="form-label">Product & Technology</label>
+                                            <input type="number" class="form-control criteria-weight" id="product-weight" min="0" max="100" value="15" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="business-weight" class="form-label">Business Model</label>
+                                            <input type="number" class="form-control criteria-weight" id="business-weight" min="0" max="100" value="10" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="fw-bold mt-4">Total: <span id="criteria-total">100</span>/100</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- LP Profiles -->
+                                <div class="mb-4">
+                                    <h4>Limited Partner (LP) Profiles</h4>
+                                    <p>Select your LP composition:</p>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="institutional-lps" class="form-label">Institutional LPs (%)</label>
+                                            <input type="number" class="form-control lp-composition" id="institutional-lps" min="0" max="100" value="40" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="family-offices" class="form-label">Family Offices (%)</label>
+                                            <input type="number" class="form-control lp-composition" id="family-offices" min="0" max="100" value="30" required>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="individual-lps" class="form-label">Individual LPs (%)</label>
+                                            <input type="number" class="form-control lp-composition" id="individual-lps" min="0" max="100" value="30" required>
+                                        </div>
+                                    </div>
+                                    <p class="fw-bold">Total: <span id="lp-total">100</span>/100</p>
+                                </div>
+
+                                <div class="text-center mt-5">
+                                    <div class="card-footer bg-light p-4 rounded">
+                                        <h5 class="mb-3">Ready to build your venture capital empire?</h5>
+                                        <button type="button" id="launch-fund-btn" class="btn btn-primary btn-lg px-5 py-3" onclick="directLaunchFund(); return false;">
+                                            <i class="fas fa-rocket me-2"></i>Start Investing
+                                        </button>
+                                        <p class="text-muted mt-3 small">You'll experience the full 10-year lifecycle of your venture fund</p>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Phase -->
+                <div id="simulation-phase" class="game-phase d-none">
+
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Deal Flow</h5>
+                                    <button id="next-quarter-btn" class="btn btn-light">
+                                        <i class="fas fa-forward me-2"></i>Next Quarter
+                                    </button>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="p-3 bg-light border-bottom">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Current Pipeline</h6>
+                                                <p class="text-muted mb-0 small">Review and make investment decisions</p>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-primary rounded-pill">Year <span id="year-badge">1</span> | Q<span id="quarter-badge">1</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="deal-flow-container" class="p-3">
+                                        <!-- Deal cards will be dynamically inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-newspaper me-2"></i>Market Events</h5>
+                                    <span class="badge bg-light text-info rounded-pill" id="events-count-badge">0</span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="p-3 bg-light border-bottom">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-0">Market Updates</h6>
+                                                <p class="text-muted mb-0 small">Stay informed about market conditions</p>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-info"><i class="fas fa-bell"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="market-events" class="p-3">
+                                        <!-- Market events will be dynamically inserted here -->
+                                        <div class="text-center text-muted py-5" id="empty-events-message">
+                                            <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                                            <p>No market events yet</p>
+                                            <p class="small">Events will appear as the simulation progresses</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Portfolio Performance</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <canvas id="portfolio-chart" height="250"></canvas>
+                                </div>
+                                <div class="col-md-4">
+                                    <div id="portfolio-summary">
+                                        <!-- Portfolio summary will be dynamically inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="fas fa-building me-2"></i>Portfolio Companies</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="p-3 bg-light border-bottom">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Your Investment Portfolio</h6>
+                                        <p class="text-muted mb-0 small">Detailed view of all your investments</p>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-primary">Companies: <span id="companies-count-badge">0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="portfolio-companies" class="p-3">
+                                <!-- Portfolio companies will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Phase -->
+                <div id="results-phase" class="game-phase d-none">
+
+                    
+                    <div class="card mb-5">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Fund Performance Summary</h5>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4>Fund Details</h4>
+                                    <p><strong>Fund Name:</strong> <span id="result-fund-name"></span></p>
+                                    <p><strong>Fund Size:</strong> $<span id="result-fund-size"></span>M</p>
+                                    <p><strong>Investment Focus:</strong> <span id="result-fund-focus"></span></p>
+                                    <p><strong>Stage Focus:</strong> <span id="result-fund-stage"></span></p>
+                                    <p><strong>Geography:</strong> <span id="result-fund-geography"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4><i class="fas fa-chart-bar me-2 text-primary"></i>Performance Metrics</h4>
+                                    <div class="text-center mb-4">
+                                        <div class="fund-grade grade-b mb-3" id="result-fund-grade-circle">B</div>
+                                        <h5>Fund Grade: <span id="result-fund-grade">B</span></h5>
+                                        <p class="text-muted">Performance vs. Market Benchmark</p>
+                                    </div>
+                                    
+                                    <div class="row text-center">
+                                        <div class="col-md-4 mb-3">
+                                            <div class="result-metric">
+                                                <h4>IRR</h4>
+                                                <div class="value text-primary"><span id="result-fund-irr">0</span>%</div>
+                                                <div class="description">Internal Rate of Return</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="result-metric">
+                                                <h4>TVPI</h4>
+                                                <div class="value text-success"><span id="result-fund-tvpi">0</span>x</div>
+                                                <div class="description">Total Value to Paid-In</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="result-metric">
+                                                <h4>DPI</h4>
+                                                <div class="value text-info"><span id="result-fund-dpi">0</span>x</div>
+                                                <div class="description">Distributions to Paid-In</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="result-metric mt-3">
+                                        <h4>MOIC</h4>
+                                        <div class="value text-warning"><span id="result-fund-moic">0</span>x</div>
+                                        <div class="description">Multiple on Invested Capital</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h4 class="mb-3">Portfolio Summary</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h3 id="result-total-investments">0</h3>
+                                            <p class="mb-0">Total Investments</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="result-successful-exits">0</h3>
+                                            <p class="mb-0">Successful Exits</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-danger text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="result-failed-investments">0</h3>
+                                            <p class="mb-0">Failed Investments</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="result-active-investments">0</h3>
+                                            <p class="mb-0">Still Active</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h4 class="mb-3">Fund Economics</h4>
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th>Financial Metric</th>
+                                                    <th>Amount</th>
+                                                    <th>Notes</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Fund Size</td>
+                                                    <td>$<span id="finance-fund-size">0</span>M</td>
+                                                    <td>Total committed capital</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Management Fee Rate</td>
+                                                    <td><span id="finance-mgmt-fee-rate">0</span>%</td>
+                                                    <td>Annual fee on committed capital</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Management Fees (Years 1-5)</td>
+                                                    <td>$<span id="finance-mgmt-fees-early">0</span>M</td>
+                                                    <td>Full rate on committed capital</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Management Fees (Years 6-10)</td>
+                                                    <td>$<span id="finance-mgmt-fees-late">0</span>M</td>
+                                                    <td>Reduced rate on invested capital</td>
+                                                </tr>
+                                                <tr class="table-primary">
+                                                    <td><strong>Total Management Fees</strong></td>
+                                                    <td><strong>$<span id="finance-mgmt-fees-total">0</span>M</strong></td>
+                                                    <td>Sum of all management fees</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Carried Interest Rate</td>
+                                                    <td><span id="finance-carry-rate">0</span>%</td>
+                                                    <td>Percentage of profits</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Total Capital Returned</td>
+                                                    <td>$<span id="finance-capital-returned">0</span>M</td>
+                                                    <td>Total distributions to LPs and GPs</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Profit</td>
+                                                    <td>$<span id="finance-profit">0</span>M</td>
+                                                    <td>Capital returned minus fund size</td>
+                                                </tr>
+                                                <tr class="table-success">
+                                                    <td><strong>Carried Interest Earned</strong></td>
+                                                    <td><strong>$<span id="finance-carry-earned">0</span>M</strong></td>
+                                                    <td>GP's share of profits</td>
+                                                </tr>
+                                                <tr class="table-info">
+                                                    <td><strong>Total GP Compensation</strong></td>
+                                                    <td><strong>$<span id="finance-gp-total">0</span>M</strong></td>
+                                                    <td>Management fees + carried interest</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>LP Returns</td>
+                                                    <td>$<span id="finance-lp-returns">0</span>M</td>
+                                                    <td>Capital returned to LPs</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <h4 class="mb-3">Investment Portfolio</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>Industry</th>
+                                            <th>Investment ($M)</th>
+                                            <th>Year</th>
+                                            <th>Status</th>
+                                            <th>Return Multiple</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="portfolio-results-table">
+                                        <!-- Portfolio results will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h4>Key Metrics</h4>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Final IRR</th>
+                                                <td id="final-irr">0%</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Final MOIC</th>
+                                                <td id="final-moic">0x</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Investments</th>
+                                                <td id="total-investments">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Successful Exits</th>
+                                                <td id="successful-exits">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Failed Investments</th>
+                                                <td id="failed-investments">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Management Fees Collected</th>
+                                                <td id="management-fees">$0M</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Carried Interest Earned</th>
+                                                <td id="carried-interest-earned">$0M</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4>Performance Chart</h4>
+                                    <canvas id="performance-chart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Top Performing Investments</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="top-investments">
+                                <!-- Top investments will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">Lessons Learned</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="lessons-learned">
+                                <!-- Lessons learned will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button id="restart-game-btn" class="btn btn-primary btn-lg">Start New Fund</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Deal Details -->
+    <div class="modal fade" id="deal-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deal-modal-title">Startup Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="deal-modal-body">
+                    <!-- Deal details will be dynamically inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="pass-deal-btn">Pass</button>
+                    <button type="button" class="btn btn-success" id="invest-deal-btn">Invest</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Company Details -->
+    <div class="modal fade" id="company-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="company-modal-title">Company Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="company-modal-body">
+                    <!-- Company details will be dynamically inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary d-none" id="followon-btn">Follow-on Investment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <!-- Application Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/companies-database.js"></script>
+    <script src="js/models.js"></script>
+    <script src="js/simulation.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/results-handler.js"></script>
+    <script src="js/auto-simulation.js"></script>
+    <script src="js/reset-handler.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/direct-launch.js"></script>
+</body>
+</html>
