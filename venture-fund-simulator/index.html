@@ -49,7 +49,7 @@
         </div>
     </nav>
     
-    <div class="container-fluid mt-5">
+    <div class="container-fluid mt-4">
 
 
 
@@ -416,16 +416,12 @@
                         </div>
                         <div class="card-body">
 
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h4>Fund Details</h4>
-                                    <p><strong>Fund Name:</strong> <span id="result-fund-name"></span></p>
-                                    <p><strong>Fund Size:</strong> $<span id="result-fund-size"></span>M</p>
-                                    <p><strong>Investment Focus:</strong> <span id="result-fund-focus"></span></p>
-                                    <p><strong>Stage Focus:</strong> <span id="result-fund-stage"></span></p>
-                                    <p><strong>Geography:</strong> <span id="result-fund-geography"></span></p>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <h4>Performance Chart</h4>
+                                    <canvas id="performance-chart" height="250"></canvas>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 mb-4">
                                     <h4><i class="fas fa-chart-bar me-2 text-primary"></i>Performance Metrics</h4>
                                     <div class="text-center mb-4">
                                         <div class="fund-grade grade-b mb-3" id="result-fund-grade-circle">B</div>
@@ -456,11 +452,48 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="result-metric mt-3">
-                                        <h4>MOIC</h4>
-                                        <div class="value text-warning"><span id="result-fund-moic">0</span>x</div>
-                                        <div class="description">Multiple on Invested Capital</div>
-                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h4>Fund Details</h4>
+                                    <p><strong>Fund Name:</strong> <span id="result-fund-name"></span></p>
+                                    <p><strong>Fund Size:</strong> $<span id="result-fund-size"></span>M</p>
+                                    <p><strong>Investment Focus:</strong> <span id="result-fund-focus"></span></p>
+                                    <p><strong>Stage Focus:</strong> <span id="result-fund-stage"></span></p>
+                                    <p><strong>Geography:</strong> <span id="result-fund-geography"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h4>Key Metrics</h4>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <th>Final IRR</th>
+                                                <td id="final-irr">0%</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Investments</th>
+                                                <td id="total-investments">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Successful Exits</th>
+                                                <td id="successful-exits">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Failed Investments</th>
+                                                <td id="failed-investments">0</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Management Fees Collected</th>
+                                                <td id="management-fees">$0M</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Carried Interest Earned</th>
+                                                <td id="carried-interest-earned">$0M</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                             
@@ -573,67 +606,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <h4 class="mb-3">Investment Portfolio</h4>
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Company</th>
-                                            <th>Industry</th>
-                                            <th>Investment ($M)</th>
-                                            <th>Year</th>
-                                            <th>Status</th>
-                                            <th>Return Multiple</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="portfolio-results-table">
-                                        <!-- Portfolio results will be inserted here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <h4>Key Metrics</h4>
-                                    <table class="table">
-                                        <tbody>
-                                            <tr>
-                                                <th>Final IRR</th>
-                                                <td id="final-irr">0%</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Final MOIC</th>
-                                                <td id="final-moic">0x</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Total Investments</th>
-                                                <td id="total-investments">0</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Successful Exits</th>
-                                                <td id="successful-exits">0</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Failed Investments</th>
-                                                <td id="failed-investments">0</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Management Fees Collected</th>
-                                                <td id="management-fees">$0M</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Carried Interest Earned</th>
-                                                <td id="carried-interest-earned">$0M</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h4>Performance Chart</h4>
-                                    <canvas id="performance-chart" height="250"></canvas>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -655,6 +627,31 @@
                         <div class="card-body">
                             <div id="lessons-learned">
                                 <!-- Lessons learned will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Investment Portfolio</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Company</th>
+                                            <th>Industry</th>
+                                            <th>Investment ($M)</th>
+                                            <th>Year</th>
+                                            <th>Status</th>
+                                            <th>Return Multiple</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="portfolio-results-table">
+                                        <!-- Portfolio results will be inserted here -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

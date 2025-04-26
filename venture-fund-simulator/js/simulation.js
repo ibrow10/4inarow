@@ -238,6 +238,26 @@ class GameSimulation {
         const INVESTMENT_THRESHOLD = 70; // Only invest in deals that score 70+
         const MAX_INVESTMENTS_PER_QUARTER = 1; // Limit investments per quarter
         
+        // Check if we're close to or have exceeded the target number of investments
+        const currentInvestmentCount = this.fund.totalInvestments;
+        const targetInvestmentCount = this.fund.targetInvestments;
+        const investmentRatio = currentInvestmentCount / targetInvestmentCount;
+        
+        // If we've already reached 90% of our target, become more selective
+        if (investmentRatio >= 0.9) {
+            // If we've exceeded our target, be very selective
+            if (investmentRatio >= 1.0) {
+                // Only invest in exceptional deals (85+ score) and limit to 1 per year
+                if (this.fund.currentQuarter !== 1 || Math.random() > 0.25) {
+                    // Skip investing this quarter
+                    for (const deal of deals) {
+                        this.passDeal(deal);
+                    }
+                    return;
+                }
+            }
+        }
+        
         let investmentsMade = 0;
         
         for (const deal of deals) {
@@ -250,8 +270,17 @@ class GameSimulation {
             // Evaluate the deal
             const score = this.evaluateDeal(deal);
             
-            // Invest if score is above threshold and we have capital
-            if (score >= INVESTMENT_THRESHOLD && this.fund.availableCapital >= this.fund.checkSize) {
+            // Adjust threshold based on how close we are to target
+            let adjustedThreshold = INVESTMENT_THRESHOLD;
+            if (investmentRatio >= 0.9) {
+                adjustedThreshold = 80; // More selective when close to target
+            }
+            if (investmentRatio >= 1.0) {
+                adjustedThreshold = 85; // Very selective when over target
+            }
+            
+            // Invest if score is above adjusted threshold and we have capital
+            if (score >= adjustedThreshold && this.fund.availableCapital >= this.fund.checkSize) {
                 console.log(`Auto-investing in ${deal.name} with score ${score}`);
                 this.makeInvestment(deal);
                 investmentsMade++;
@@ -280,17 +309,46 @@ class GameSimulation {
         // Only make follow-on investments if we have reserved capital
         if (this.fund.reservedCapital <= 0) return;
         
+        // Check if we're close to or have exceeded the target number of investments
+        const currentInvestmentCount = this.fund.totalInvestments;
+        const targetInvestmentCount = this.fund.targetInvestments;
+        const investmentRatio = currentInvestmentCount / targetInvestmentCount;
+        
+        // Adjust follow-on probability based on investment ratio
+        let followOnProbability = 0.3; // Default 30% chance
+        
+        // Reduce follow-on probability as we get closer to target
+        if (investmentRatio >= 0.8) {
+            followOnProbability = 0.2; // 20% chance when at 80% of target
+        }
+        if (investmentRatio >= 1.0) {
+            followOnProbability = 0.15; // 15% chance when at or above target
+        }
+        if (investmentRatio >= 1.2) {
+            followOnProbability = 0.1; // 10% chance when well above target
+        }
+        
         // Consider each portfolio company for follow-on
         for (const startup of this.fund.portfolio) {
             // Only consider companies that have been in portfolio for at least 4 quarters
             if (startup.quartersSinceInvestment < 4) continue;
             
+            // Adjust performance threshold based on investment ratio
+            let performanceThreshold = 1.5; // Default multiple threshold
+            
+            if (investmentRatio >= 0.8) {
+                performanceThreshold = 1.8; // Higher threshold when close to target
+            }
+            if (investmentRatio >= 1.0) {
+                performanceThreshold = 2.0; // Much higher threshold when at or above target
+            }
+            
             // Only consider companies that are performing well
             const currentMultiple = startup.getCurrentMultiple();
-            if (currentMultiple < 1.5) continue;
+            if (currentMultiple < performanceThreshold) continue;
             
-            // 30% chance of making a follow-on investment in qualifying companies
-            if (Math.random() < 0.3) {
+            // Chance of making a follow-on investment in qualifying companies
+            if (Math.random() < followOnProbability) {
                 // Calculate follow-on amount (typically 1-2x original investment)
                 const followOnAmount = Math.min(
                     startup.investmentAmount * (1 + Math.random()),

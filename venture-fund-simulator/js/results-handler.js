@@ -85,7 +85,6 @@ function renderResultsData() {
     document.getElementById('result-fund-irr').textContent = fund.finalIrr ? fund.finalIrr.toFixed(1) : fund.irr.toFixed(1);
     document.getElementById('result-fund-tvpi').textContent = fund.tvpi ? fund.tvpi.toFixed(2) : '1.00';
     document.getElementById('result-fund-dpi').textContent = fund.dpi ? fund.dpi.toFixed(2) : '0.00';
-    document.getElementById('result-fund-moic').textContent = fund.moic.toFixed(2);
     
     // Portfolio summary
     document.getElementById('result-total-investments').textContent = fund.totalInvestments;
@@ -98,7 +97,6 @@ function renderResultsData() {
     
     // Update other metrics in the results section
     document.getElementById('final-irr').textContent = `${fund.irr.toFixed(1)}%`;
-    document.getElementById('final-moic').textContent = `${fund.moic.toFixed(2)}x`;
     document.getElementById('total-investments').textContent = fund.totalInvestments;
     document.getElementById('successful-exits').textContent = fund.successfulExits;
     document.getElementById('failed-investments').textContent = fund.failedInvestments;
@@ -207,10 +205,27 @@ function renderPortfolioTable() {
         }
         
         // Create table cells
+        let followOnInfo = '';
+        if (investment.followOnInvestments.length > 0) {
+            const followOnCount = investment.followOnInvestments.length;
+            const followOnTotal = investment.followOnInvestments.reduce((sum, fi) => sum + fi.amount, 0);
+            followOnInfo = `<span class="badge bg-info ms-2" title="${followOnCount} follow-on investments totaling $${followOnTotal.toFixed(1)}M">
+                +${followOnCount} Follow-on
+            </span>`;
+        }
+        
         row.innerHTML = `
-            <td><strong>${startup.name}</strong></td>
+            <td>
+                <strong>${startup.name}</strong>
+                ${followOnInfo}
+            </td>
             <td>${INDUSTRY_DATA[startup.industry].name}</td>
-            <td>$${totalInvestment.toFixed(1)}M</td>
+            <td>
+                $${investment.initialInvestment.toFixed(1)}M
+                ${investment.followOnInvestments.length > 0 ? 
+                    `<span class="text-success">+$${investment.followOnInvestments.reduce((sum, fi) => sum + fi.amount, 0).toFixed(1)}M</span>` : 
+                    ''}
+            </td>
             <td>Y${investment.year}Q${investment.quarter}</td>
             <td class="${statusClass}">${status}</td>
             <td>${returnMultiple}</td>

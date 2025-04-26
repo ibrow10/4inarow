@@ -23,6 +23,7 @@ body {
   color: var(--text-color);
   background-color: #f5f7fa;
   line-height: 1.6;
+  padding-top: 80px; /* Add padding to account for fixed navbar */
 }
 
 /* Header Styling */
