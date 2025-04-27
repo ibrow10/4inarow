@@ -15,8 +15,8 @@ export const GRID_SIZES = {
 // Grid dimensions for each size
 export const GRID_DIMENSIONS = {
   [GRID_SIZES.STANDARD]: { rows: 6, cols: 7 },
-  [GRID_SIZES.MEDIUM]: { rows: 11, cols: 11 },
-  [GRID_SIZES.LARGE]: { rows: 21, cols: 21 }
+  [GRID_SIZES.MEDIUM]: { rows: 10, cols: 11 },
+  [GRID_SIZES.LARGE]: { rows: 14, cols: 15 }
 };
 
 // Default grid size
@@ -108,8 +108,8 @@ export function checkDirection(board, row, col, direction, player) {
   let c = col;
   
   while (
-    r >= 0 && r < ROWS &&
-    c >= 0 && c < COLS &&
+    r >= 0 && r < board.length &&
+    c >= 0 && c < board[0].length &&
     board[r][c] === player
   ) {
     winningCells.push({ row: r, col: c });
@@ -123,8 +123,8 @@ export function checkDirection(board, row, col, direction, player) {
   c = col + oppositeDirection.col;
   
   while (
-    r >= 0 && r < ROWS &&
-    c >= 0 && c < COLS &&
+    r >= 0 && r < board.length &&
+    c >= 0 && c < board[0].length &&
     board[r][c] === player
   ) {
     winningCells.push({ row: r, col: c });
