@@ -59,43 +59,13 @@ function getRandomMove(board) {
 }
 
 /**
- * Medium difficulty AI: Blocks obvious wins and takes obvious wins
+ * Medium difficulty AI: Uses minimax with moderate depth (same as old hard level)
  * @param {Array<Array<null|number>>} board - Current game board
  * @param {number} aiPlayer - AI player number
  * @param {number} humanPlayer - Human player number
  * @returns {number} Column index for move
  */
 function getMediumMove(board, aiPlayer, humanPlayer) {
-  // Check if AI can win in one move
-  const winningMove = findWinningMove(board, aiPlayer);
-  if (winningMove !== -1) {
-    return winningMove;
-  }
-  
-  // Block human player from winning in one move
-  const blockingMove = findWinningMove(board, humanPlayer);
-  if (blockingMove !== -1) {
-    return blockingMove;
-  }
-  
-  // Prefer center column
-  const centerColumn = 3;
-  if (isValidMove(board, centerColumn)) {
-    return centerColumn;
-  }
-  
-  // Otherwise make a random move
-  return getRandomMove(board);
-}
-
-/**
- * Hard difficulty AI: Uses deeper evaluation and looks ahead
- * @param {Array<Array<null|number>>} board - Current game board
- * @param {number} aiPlayer - AI player number
- * @param {number} humanPlayer - Human player number
- * @returns {number} Column index for move
- */
-function getHardMove(board, aiPlayer, humanPlayer) {
   // Check if AI can win in one move
   const winningMove = findWinningMove(board, aiPlayer);
   if (winningMove !== -1) {
@@ -119,8 +89,86 @@ function getHardMove(board, aiPlayer, humanPlayer) {
     // Skip invalid moves
     if (rowIndex === null) continue;
     
-    // Evaluate this move
+    // Evaluate this move (depth 4, same as old hard level)
     const score = minimax(newBoard, 4, false, aiPlayer, humanPlayer, -Infinity, Infinity);
+    
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = colIndex;
+    }
+  }
+  
+  // If no good move found, use center or random
+  if (bestMove === -1) {
+    bestMove = isValidMove(board, 3) ? 3 : getRandomMove(board);
+  }
+  
+  return bestMove;
+}
+
+/**
+ * Hard difficulty AI: Unbeatable AI using deep minimax search and advanced evaluation
+ * @param {Array<Array<null|number>>} board - Current game board
+ * @param {number} aiPlayer - AI player number
+ * @param {number} humanPlayer - Human player number
+ * @returns {number} Column index for move
+ */
+function getHardMove(board, aiPlayer, humanPlayer) {
+  // Check if AI can win in one move
+  const winningMove = findWinningMove(board, aiPlayer);
+  if (winningMove !== -1) {
+    return winningMove;
+  }
+  
+  // Block human player from winning in one move
+  const blockingMove = findWinningMove(board, humanPlayer);
+  if (blockingMove !== -1) {
+    return blockingMove;
+  }
+  
+  // Count number of pieces to adjust search depth
+  let piecesCount = 0;
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (board[row][col] !== EMPTY) {
+        piecesCount++;
+      }
+    }
+  }
+  
+  // Adjust search depth based on game progress
+  // Deeper search at beginning and end, shallower in middle for performance
+  let searchDepth = 6; // Default depth
+  if (piecesCount < 10) {
+    searchDepth = 8; // Deep search at beginning
+  } else if (piecesCount > 30) {
+    searchDepth = 10; // Very deep search near end
+  }
+  
+  // Evaluate potential moves with deeper minimax
+  let bestScore = -Infinity;
+  let bestMove = -1;
+  const validMoves = getValidMoves(board);
+  
+  // Prioritize center columns for initial evaluation
+  const orderedMoves = [...validMoves].sort((a, b) => {
+    return Math.abs(3 - a) - Math.abs(3 - b);
+  });
+  
+  for (const colIndex of orderedMoves) {
+    const { board: newBoard, rowIndex } = makeMove(board, colIndex, aiPlayer);
+    
+    // Skip invalid moves
+    if (rowIndex === null) continue;
+    
+    // Check for immediate win
+    const winResult = checkWin(newBoard, rowIndex, colIndex);
+    if (winResult.win) {
+      return colIndex; // Immediate win found
+    }
+    
+    // Evaluate this move with deeper search
+    const score = minimax(newBoard, searchDepth, false, aiPlayer, humanPlayer, -Infinity, Infinity);
     
     if (score > bestScore) {
       bestScore = score;
@@ -238,15 +286,22 @@ function evaluateWindow(window, aiPlayer, humanPlayer) {
   const humanCount = window.filter(cell => cell === humanPlayer).length;
   const emptyCount = window.filter(cell => cell === EMPTY).length;
   
-  // Scoring based on pieces in window
-  if (aiCount === 4) return 100; // AI win
-  if (humanCount === 4) return -100; // Human win
+  // Scoring based on pieces in window - enhanced for unbeatable AI
+  if (aiCount === 4) return 1000; // AI win - higher value
+  if (humanCount === 4) return -1000; // Human win - higher penalty
   
-  if (aiCount === 3 && emptyCount === 1) return 5; // AI potential win
-  if (humanCount === 3 && emptyCount === 1) return -5; // Block human potential win
+  if (aiCount === 3 && emptyCount === 1) return 50; // AI potential win - much higher priority
+  if (humanCount === 3 && emptyCount === 1) return -50; // Block human potential win - much higher priority
   
-  if (aiCount === 2 && emptyCount === 2) return 2; // AI building up
-  if (humanCount === 2 && emptyCount === 2) return -2; // Human building up
+  if (aiCount === 2 && emptyCount === 2) return 10; // AI building up - higher value
+  if (humanCount === 2 && emptyCount === 2) return -10; // Human building up - higher penalty
+  
+  // New patterns
+  if (aiCount === 1 && emptyCount === 3) return 1; // Starting to build
+  if (humanCount === 1 && emptyCount === 3) return -1; // Human starting to build
+  
+  // Prefer empty windows slightly
+  if (emptyCount === 4) return 0.5;
   
   return 0;
 }

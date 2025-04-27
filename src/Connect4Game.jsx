@@ -620,12 +620,14 @@ const Connect4Game = () => {
           font-weight: bold;
           font-size: 1.1rem;
           margin-bottom: 5px;
+          text-align: center;
         }
         
         .persona-difficulty {
           font-size: 0.9rem;
           color: #7f8c8d;
           margin-bottom: 5px;
+          text-align: center;
         }
         
         .persona-info-icon {
@@ -713,13 +715,39 @@ const Connect4Game = () => {
           }
           
           .persona-container {
-            flex-direction: column;
-            align-items: center;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
           }
           
           .persona-card {
+            min-width: 0;
             width: 100%;
-            max-width: 100%;
+            max-width: none;
+            padding: 10px 5px;
+            margin: 0;
+          }
+          
+          .persona-avatar {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+          }
+          
+          .persona-name {
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+          }
+          
+          .persona-difficulty {
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+          }
+          
+          .persona-info-icon {
+            top: 5px;
+            right: 5px;
+            font-size: 0.8rem;
           }
           
           .board {
@@ -731,6 +759,48 @@ const Connect4Game = () => {
             width: clamp(30px, 8vw, 45px);
             height: clamp(30px, 8vw, 45px);
             margin: clamp(3px, 0.8vw, 5px);
+          }
+          
+          /* Improve modal for mobile */
+          .persona-info-content {
+            padding: 15px;
+            max-width: 85%;
+            width: 300px;
+          }
+          
+          .persona-info-avatar {
+            font-size: 1.5rem;
+            margin-right: 10px;
+          }
+          
+          .persona-info-header h3 {
+            font-size: 1.2rem;
+          }
+        }
+        
+        /* Extra small screens */
+        @media (max-width: 350px) {
+          .persona-container {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+          }
+          
+          .persona-card {
+            padding: 8px 3px;
+          }
+          
+          .persona-avatar {
+            font-size: 1.5rem;
+            margin-bottom: 3px;
+          }
+          
+          .persona-name {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
+          }
+          
+          .persona-difficulty {
+            font-size: 0.7rem;
           }
         }
       `}</style>
