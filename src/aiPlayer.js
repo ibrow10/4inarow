@@ -97,19 +97,37 @@ function getMediumMove(board, aiPlayer, humanPlayer) {
     return blockingMove;
   }
   
+  // Determine search depth based on board size
+  const totalCells = board.length * board[0].length;
+  let searchDepth = 3; // Default for standard board
+  
+  // Reduce depth for larger boards
+  if (totalCells > 100) { // Medium board
+    searchDepth = 1;
+  } else if (totalCells > 200) { // Large board
+    // For large boards, use a faster heuristic approach instead of minimax
+    return getSmartHeuristicMove(board, aiPlayer, humanPlayer);
+  }
+  
   // Evaluate potential moves with minimax (limited depth)
   let bestScore = -Infinity;
   let bestMove = -1;
   const validMoves = getValidMoves(board);
   
-  for (const colIndex of validMoves) {
+  // Prioritize center columns for evaluation
+  const centerCol = Math.floor(board[0].length / 2);
+  const orderedMoves = [...validMoves].sort((a, b) => {
+    return Math.abs(centerCol - a) - Math.abs(centerCol - b);
+  });
+  
+  for (const colIndex of orderedMoves) {
     const { board: newBoard, rowIndex } = makeMove(board, colIndex, aiPlayer);
     
     // Skip invalid moves
     if (rowIndex === null) continue;
     
-    // Evaluate this move (depth 4, same as old hard level)
-    const score = minimax(newBoard, 4, false, aiPlayer, humanPlayer, -Infinity, Infinity);
+    // Evaluate this move with appropriate depth
+    const score = minimax(newBoard, searchDepth, false, aiPlayer, humanPlayer, -Infinity, Infinity);
     
     if (score > bestScore) {
       bestScore = score;
@@ -160,24 +178,22 @@ function getHardMove(board, aiPlayer, humanPlayer) {
     }
   }
   
-  // Adjust search depth based on game progress and board size
-  // Deeper search at beginning and end, shallower in middle for performance
-  let searchDepth = 6; // Default depth
+  // Adjust search depth based on board size for faster performance
+  let searchDepth = 4; // Default depth for standard board
   
-  // For larger boards, reduce search depth to maintain performance
-  if (totalCells > 100) { // Medium board (11x11 or larger)
-    searchDepth = 5;
-  } else if (totalCells > 300) { // Large board (21x21 or larger)
-    searchDepth = 4;
+  // For larger boards, significantly reduce search depth for speed
+  if (totalCells > 100) { // Medium board (10x11)
+    searchDepth = 2;
+  } else if (totalCells > 200) { // Large board (14x15)
+    searchDepth = 1;
   }
   
-  // Adjust based on game progress
+  // Only increase depth in critical situations
   const gameProgressPercentage = (piecesCount / totalCells) * 100;
   
-  if (gameProgressPercentage < 15) {
-    searchDepth += 2; // Deep search at beginning
-  } else if (gameProgressPercentage > 70) {
-    searchDepth += 3; // Very deep search near end
+  // For standard board only, increase depth near end game
+  if (totalCells < 100 && gameProgressPercentage > 70) {
+    searchDepth += 1;
   }
   
   // Evaluate potential moves with deeper minimax
@@ -373,6 +389,13 @@ function minimax(board, depth, isMaximizing, aiPlayer, humanPlayer, alpha, beta)
     return evaluateBoard(board, aiPlayer, humanPlayer);
   }
   
+  // Early termination for larger boards to improve performance
+  const totalCells = board.length * board[0].length;
+  if (totalCells > 100 && depth < 2 && Math.random() < 0.3) {
+    // Randomly terminate some branches early on larger boards
+    return evaluateBoard(board, aiPlayer, humanPlayer);
+  }
+  
   // Prioritize center columns for evaluation
   const COLS = board[0].length;
   const centerCol = Math.floor(COLS / 2);
@@ -380,11 +403,14 @@ function minimax(board, depth, isMaximizing, aiPlayer, humanPlayer, alpha, beta)
     return Math.abs(centerCol - a) - Math.abs(centerCol - b);
   });
   
+  // For larger boards, consider fewer moves to improve performance
+  const movesToConsider = totalCells > 100 ? orderedMoves.slice(0, Math.min(5, orderedMoves.length)) : orderedMoves;
+  
   if (isMaximizing) {
     // AI's turn (maximizing)
     let maxScore = -Infinity;
     
-    for (const colIndex of orderedMoves) {
+    for (const colIndex of movesToConsider) {
       const { board: newBoard, rowIndex } = makeMove(board, colIndex, aiPlayer);
       
       if (rowIndex === null) continue;
@@ -408,7 +434,7 @@ function minimax(board, depth, isMaximizing, aiPlayer, humanPlayer, alpha, beta)
     // Human's turn (minimizing)
     let minScore = Infinity;
     
-    for (const colIndex of orderedMoves) {
+    for (const colIndex of movesToConsider) {
       const { board: newBoard, rowIndex } = makeMove(board, colIndex, humanPlayer);
       
       if (rowIndex === null) continue;
@@ -429,4 +455,116 @@ function minimax(board, depth, isMaximizing, aiPlayer, humanPlayer, alpha, beta)
     
     return minScore;
   }
+}
+
+/**
+ * Fast heuristic-based move selection for large boards
+ * @param {Array<Array<null|number>>} board - Current game board
+ * @param {number} aiPlayer - AI player number
+ * @param {number} humanPlayer - Human player number
+ * @returns {number} Column index for move
+ */
+function getSmartHeuristicMove(board, aiPlayer, humanPlayer) {
+  // Check if AI can win in one move
+  const winningMove = findWinningMove(board, aiPlayer);
+  if (winningMove !== -1) {
+    return winningMove;
+  }
+  
+  // Block human player from winning in one move
+  const blockingMove = findWinningMove(board, humanPlayer);
+  if (blockingMove !== -1) {
+    return blockingMove;
+  }
+  
+  const validMoves = getValidMoves(board);
+  const COLS = board[0].length;
+  const centerCol = Math.floor(COLS / 2);
+  
+  // Score each possible move using a simple heuristic
+  const moveScores = validMoves.map(colIndex => {
+    const { board: newBoard, rowIndex } = makeMove(board, colIndex, aiPlayer);
+    if (rowIndex === null) return { colIndex, score: -1000 };
+    
+    // Base score - prefer center columns
+    let score = 10 - Math.abs(centerCol - colIndex);
+    
+    // Check for potential connect-3s
+    score += countPotentialConnects(newBoard, aiPlayer) * 3;
+    
+    // Avoid moves that give opponent a winning move
+    const opponentWinningMove = findWinningMove(newBoard, humanPlayer);
+    if (opponentWinningMove !== -1) {
+      score -= 50;
+    }
+    
+    return { colIndex, score };
+  });
+  
+  // Sort by score and get the best move
+  moveScores.sort((a, b) => b.score - a.score);
+  
+  // Add some randomness for variety but still favor good moves
+  const topMoves = moveScores.slice(0, Math.min(3, moveScores.length));
+  const randomIndex = Math.floor(Math.random() * topMoves.length);
+  
+  return topMoves[randomIndex].colIndex;
+}
+
+/**
+ * Count potential connect-3s for a player
+ * @param {Array<Array<null|number>>} board - Game board
+ * @param {number} player - Player to check for
+ * @returns {number} Number of potential connect-3s
+ */
+function countPotentialConnects(board, player) {
+  const ROWS = board.length;
+  const COLS = board[0].length;
+  let count = 0;
+  
+  // Check horizontal
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col <= COLS - 3; col++) {
+      const window = [board[row][col], board[row][col+1], board[row][col+2]];
+      if (window.filter(cell => cell === player).length === 2 && 
+          window.filter(cell => cell === EMPTY).length === 1) {
+        count++;
+      }
+    }
+  }
+  
+  // Check vertical
+  for (let col = 0; col < COLS; col++) {
+    for (let row = 0; row <= ROWS - 3; row++) {
+      const window = [board[row][col], board[row+1][col], board[row+2][col]];
+      if (window.filter(cell => cell === player).length === 2 && 
+          window.filter(cell => cell === EMPTY).length === 1) {
+        count++;
+      }
+    }
+  }
+  
+  // Check diagonal (down-right)
+  for (let row = 0; row <= ROWS - 3; row++) {
+    for (let col = 0; col <= COLS - 3; col++) {
+      const window = [board[row][col], board[row+1][col+1], board[row+2][col+2]];
+      if (window.filter(cell => cell === player).length === 2 && 
+          window.filter(cell => cell === EMPTY).length === 1) {
+        count++;
+      }
+    }
+  }
+  
+  // Check diagonal (down-left)
+  for (let row = 0; row <= ROWS - 3; row++) {
+    for (let col = 2; col < COLS; col++) {
+      const window = [board[row][col], board[row+1][col-1], board[row+2][col-2]];
+      if (window.filter(cell => cell === player).length === 2 && 
+          window.filter(cell => cell === EMPTY).length === 1) {
+        count++;
+      }
+    }
+  }
+  
+  return count;
 }
