@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ROWS, 
-  COLS, 
   EMPTY, 
   PLAYER_1, 
   PLAYER_2, 
+  GRID_SIZES,
+  DEFAULT_GRID_SIZE,
+  GRID_DIMENSIONS,
   createEmptyBoard, 
   findLowestEmptyRow,
   makeMove,
   isValidMove,
-  getGameStatus
+  getGameStatus,
+  getCols
 } from './gameLogic';
 import { getAIMove, AI_LEVEL, AI_PERSONA } from './aiPlayer';
 
 // Main Connect4 component
 const Connect4Game = () => {
   // Game state
-  const [board, setBoard] = useState(createEmptyBoard());
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [board, setBoard] = useState(createEmptyBoard(gridSize));
   const [currentPlayer, setCurrentPlayer] = useState(PLAYER_1);
   const [gameStatus, setGameStatus] = useState('inProgress'); // 'inProgress', 'win', 'draw'
   const [winner, setWinner] = useState(null);
@@ -106,7 +109,20 @@ const Connect4Game = () => {
   
   // Reset the game
   const resetGame = () => {
-    setBoard(createEmptyBoard());
+    setBoard(createEmptyBoard(gridSize));
+    setCurrentPlayer(PLAYER_1);
+    setGameStatus('inProgress');
+    setWinner(null);
+    setWinningCells([]);
+    setHoverColumn(null);
+    setAiThinking(false);
+    setDropAnimation({ active: false, col: null, row: null });
+  };
+  
+  // Change grid size
+  const changeGridSize = (size) => {
+    setGridSize(size);
+    setBoard(createEmptyBoard(size));
     setCurrentPlayer(PLAYER_1);
     setGameStatus('inProgress');
     setWinner(null);
@@ -176,7 +192,7 @@ const Connect4Game = () => {
     return (
       <div 
         key={colIndex} 
-        className={`column ${isHovered ? 'hover' : ''} ${isColumnFull ? 'full' : ''} ${!isInteractive ? 'not-interactive' : ''}`}
+        className={`column ${isHovered ? 'hover' : ''} ${isColumnFull ? 'full' : ''} ${!isInteractive ? 'not-interactive' : ''} ${gridSize}`}
         onClick={() => handleColumnClick(colIndex)}
         onMouseEnter={() => setHoverColumn(colIndex)}
         onMouseLeave={() => setHoverColumn(null)}
@@ -317,16 +333,46 @@ const Connect4Game = () => {
     );
   };
 
+  // Render grid size selection
+  const renderGridSizeSelection = () => {
+    return (
+      <div className="setting-group">
+        <label>Grid Size:</label>
+        <div className="button-group">
+          <button 
+            className={`size-button ${gridSize === GRID_SIZES.STANDARD ? 'active' : ''}`}
+            onClick={() => changeGridSize(GRID_SIZES.STANDARD)}
+          >
+            Standard (7×6)
+          </button>
+          <button 
+            className={`size-button ${gridSize === GRID_SIZES.MEDIUM ? 'active' : ''}`}
+            onClick={() => changeGridSize(GRID_SIZES.MEDIUM)}
+          >
+            Medium (11×11)
+          </button>
+          <button 
+            className={`size-button ${gridSize === GRID_SIZES.LARGE ? 'active' : ''}`}
+            onClick={() => changeGridSize(GRID_SIZES.LARGE)}
+          >
+            Large (21×21)
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="connect4-game">
       <h1>Connect 4</h1>
       
       {renderGameSettings()}
+      {renderGridSizeSelection()}
       
       {renderGameStatus()}
       
-      <div className="board">
-        {Array(COLS).fill().map((_, colIndex) => renderColumn(colIndex))}
+      <div className={`board ${gridSize}`}>
+        {Array(board[0].length).fill().map((_, colIndex) => renderColumn(colIndex))}
       </div>
       
       <button className="reset-button" onClick={resetGame}>
@@ -428,6 +474,19 @@ const Connect4Game = () => {
           box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1);
           transition: all 0.3s ease;
           position: relative;
+        }
+        
+        /* Grid size specific styles */
+        .board.medium .cell {
+          width: clamp(25px, 7vw, 45px);
+          height: clamp(25px, 7vw, 45px);
+          margin: clamp(2px, 0.7vw, 4px);
+        }
+        
+        .board.large .cell {
+          width: clamp(15px, 4vw, 25px);
+          height: clamp(15px, 4vw, 25px);
+          margin: clamp(1px, 0.4vw, 2px);
         }
         
         .cell.player1 {
@@ -753,12 +812,26 @@ const Connect4Game = () => {
           .board {
             transform: scale(0.9);
             margin: -10px auto;
+            max-width: 95vw;
+            overflow-x: auto;
           }
           
           .cell {
             width: clamp(30px, 8vw, 45px);
             height: clamp(30px, 8vw, 45px);
             margin: clamp(3px, 0.8vw, 5px);
+          }
+          
+          .board.medium .cell {
+            width: clamp(20px, 5vw, 30px);
+            height: clamp(20px, 5vw, 30px);
+            margin: clamp(2px, 0.5vw, 3px);
+          }
+          
+          .board.large .cell {
+            width: clamp(12px, 3vw, 18px);
+            height: clamp(12px, 3vw, 18px);
+            margin: clamp(1px, 0.3vw, 2px);
           }
           
           /* Improve modal for mobile */

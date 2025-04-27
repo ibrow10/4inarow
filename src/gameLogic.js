@@ -1,18 +1,45 @@
 // gameLogic.js - Core Connect 4 logic
 
 // Constants
-export const ROWS = 6;
-export const COLS = 7;
 export const EMPTY = null;
 export const PLAYER_1 = 1;
 export const PLAYER_2 = 2;
 
+// Grid size options
+export const GRID_SIZES = {
+  STANDARD: 'standard',
+  MEDIUM: 'medium',
+  LARGE: 'large'
+};
+
+// Grid dimensions for each size
+export const GRID_DIMENSIONS = {
+  [GRID_SIZES.STANDARD]: { rows: 6, cols: 7 },
+  [GRID_SIZES.MEDIUM]: { rows: 11, cols: 11 },
+  [GRID_SIZES.LARGE]: { rows: 21, cols: 21 }
+};
+
+// Default grid size
+export const DEFAULT_GRID_SIZE = GRID_SIZES.STANDARD;
+
+// Helper functions to get current dimensions
+export function getRows(gridSize = DEFAULT_GRID_SIZE) {
+  return GRID_DIMENSIONS[gridSize].rows;
+}
+
+export function getCols(gridSize = DEFAULT_GRID_SIZE) {
+  return GRID_DIMENSIONS[gridSize].cols;
+}
+
 /**
  * Create an empty game board
+ * @param {string} gridSize - Size of the grid
  * @returns {Array<Array<null>>} Empty board
  */
-export function createEmptyBoard() {
-  return Array(ROWS).fill().map(() => Array(COLS).fill(EMPTY));
+export function createEmptyBoard(gridSize = DEFAULT_GRID_SIZE) {
+  const rows = getRows(gridSize);
+  const cols = getCols(gridSize);
+  return Array(rows).fill().map(() => Array(cols).fill(EMPTY));
 }
 
 /**
@@ -22,7 +49,8 @@ export function createEmptyBoard() {
  * @returns {number} Row index or -1 if column is full
  */
 export function findLowestEmptyRow(board, colIndex) {
-  for (let row = ROWS - 1; row >= 0; row--) {
+  const rows = board.length;
+  for (let row = rows - 1; row >= 0; row--) {
     if (board[row][colIndex] === EMPTY) {
       return row;
     }
@@ -183,13 +211,15 @@ export function getGameStatus(board, lastRow, lastCol) {
  * @returns {boolean} True if move is valid
  */
 export function isValidMove(board, colIndex) {
+  const cols = board[0].length;
+  
   // Check if column is within bounds
-  if (colIndex < 0 || colIndex >= COLS) {
+  if (colIndex < 0 || colIndex >= cols) {
     return false;
   }
   
-  // Check if column is not full
-  return findLowestEmptyRow(board, colIndex) !== -1;
+  // Check if the top cell in the column is empty
+  return board[0][colIndex] === EMPTY;
 }
 
 /**
@@ -198,7 +228,14 @@ export function isValidMove(board, colIndex) {
  * @returns {Array<number>} Array of valid column indices
  */
 export function getValidMoves(board) {
-  return Array(COLS).fill()
-    .map((_, i) => i)
-    .filter(colIndex => isValidMove(board, colIndex));
+  const validMoves = [];
+  const cols = board[0].length;
+  
+  for (let col = 0; col < cols; col++) {
+    if (isValidMove(board, col)) {
+      validMoves.push(col);
+    }
+  }
+  
+  return validMoves;
 }
