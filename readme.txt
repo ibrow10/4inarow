@@ -17,7 +17,7 @@ A modern implementation of the classic Connect 4 game built with React, featurin
 
 1. Clone the repository:
 ```
-git clone https://github.com/yourusername/connect4-game.git
+git clone https://github.com/ibrow10/connect4-game.git
 cd connect4-game
 ```
 
