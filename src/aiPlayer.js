@@ -12,12 +12,33 @@ import {
 } from './gameLogic';
 
 /**
- * AI difficulty levels
+ * AI personas with associated difficulty levels
  */
 export const AI_LEVEL = {
-  EASY: 'easy',
-  MEDIUM: 'medium',
-  HARD: 'hard'
+  JIM: 'easy',     // Jim - Easy difficulty
+  ROSIE: 'medium',  // Rosie - Medium difficulty
+  DANGERMOUSE: 'hard'  // Dangermouse - Hard difficulty
+};
+
+/**
+ * AI persona descriptions
+ */
+export const AI_PERSONA = {
+  [AI_LEVEL.JIM]: {
+    name: 'Jim',
+    description: 'Casual player who often makes random moves',
+    avatar: '👨‍💼'
+  },
+  [AI_LEVEL.ROSIE]: {
+    name: 'Rosie',
+    description: 'Strategic player who can spot obvious opportunities',
+    avatar: '👩‍🔬'
+  },
+  [AI_LEVEL.DANGERMOUSE]: {
+    name: 'Dangermouse',
+    description: 'Master tactician who plans several moves ahead',
+    avatar: '🐭'
+  }
 };
 
 /**
