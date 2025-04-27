@@ -349,13 +349,13 @@ const Connect4Game = () => {
             className={`size-button ${gridSize === GRID_SIZES.MEDIUM ? 'active' : ''}`}
             onClick={() => changeGridSize(GRID_SIZES.MEDIUM)}
           >
-            Medium (11×11)
+            Medium (10×11)
           </button>
           <button 
             className={`size-button ${gridSize === GRID_SIZES.LARGE ? 'active' : ''}`}
             onClick={() => changeGridSize(GRID_SIZES.LARGE)}
           >
-            Large (21×21)
+            Large (14×15)
           </button>
         </div>
       </div>
