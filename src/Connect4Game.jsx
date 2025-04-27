@@ -211,7 +211,10 @@ const Connect4Game = () => {
       const winnerText = gameMode === 'player-vs-ai' 
         ? (winner === playerColor ? 'You win!' : `${currentPersona.name} wins!`) 
         : `Player ${winner} wins!`;
-      return <div className="status">{winnerText}</div>;
+      return <div className="status win-status">
+        <div className="trophy-icon">🏆</div>
+        <div className="win-text">{winnerText}</div>
+      </div>;
     } else if (gameStatus === 'draw') {
       return <div className="status">Game ended in a draw!</div>;
     } else if (aiThinking) {
@@ -366,18 +369,127 @@ const Connect4Game = () => {
     <div className="connect4-game">
       <h1>Connect 4</h1>
       
-      {renderGameSettings()}
-      {renderGridSizeSelection()}
+      {/* Game mode selection remains at the top */}
+      <div className="game-settings game-mode-section">
+        <div className="setting-group">
+          <label>Game Mode:</label>
+          <div className="button-group">
+            <button 
+              className={`mode-button ${gameMode === 'player-vs-player' ? 'active' : ''}`}
+              onClick={() => changeGameMode('player-vs-player')}
+            >
+              Player vs Player
+            </button>
+            <button 
+              className={`mode-button ${gameMode === 'player-vs-ai' ? 'active' : ''}`}
+              onClick={() => changeGameMode('player-vs-ai')}
+            >
+              Player vs AI
+            </button>
+          </div>
+        </div>
+        
+        {gameMode === 'player-vs-ai' && (
+          <div className="setting-group">
+            <label>Choose Your Opponent:</label>
+            <div className="persona-container">
+              <div 
+                className={`persona-card ${aiDifficulty === AI_LEVEL.JIM ? 'active' : ''}`}
+                onClick={() => changeAiDifficulty(AI_LEVEL.JIM)}
+              >
+                <div className="persona-avatar">{AI_PERSONA[AI_LEVEL.JIM].avatar}</div>
+                <div className="persona-name">{AI_PERSONA[AI_LEVEL.JIM].name}</div>
+                <div className="persona-difficulty">Beginner</div>
+                <div className="persona-info-icon" onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPersonaInfo(AI_LEVEL.JIM);
+                }}>ℹ️</div>
+              </div>
+              
+              <div 
+                className={`persona-card ${aiDifficulty === AI_LEVEL.ROSIE ? 'active' : ''}`}
+                onClick={() => changeAiDifficulty(AI_LEVEL.ROSIE)}
+              >
+                <div className="persona-avatar">{AI_PERSONA[AI_LEVEL.ROSIE].avatar}</div>
+                <div className="persona-name">{AI_PERSONA[AI_LEVEL.ROSIE].name}</div>
+                <div className="persona-difficulty">Intermediate</div>
+                <div className="persona-info-icon" onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPersonaInfo(AI_LEVEL.ROSIE);
+                }}>ℹ️</div>
+              </div>
+              
+              <div 
+                className={`persona-card ${aiDifficulty === AI_LEVEL.DANGERMOUSE ? 'active' : ''}`}
+                onClick={() => changeAiDifficulty(AI_LEVEL.DANGERMOUSE)}
+              >
+                <div className="persona-avatar">{AI_PERSONA[AI_LEVEL.DANGERMOUSE].avatar}</div>
+                <div className="persona-name">{AI_PERSONA[AI_LEVEL.DANGERMOUSE].name}</div>
+                <div className="persona-difficulty">Expert</div>
+                <div className="persona-info-icon" onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPersonaInfo(AI_LEVEL.DANGERMOUSE);
+                }}>ℹ️</div>
+              </div>
+            </div>
+            
+            {showPersonaInfo && (
+              <div className="persona-info-modal">
+                <div className="persona-info-content">
+                  <div className="persona-info-header">
+                    <span className="persona-info-avatar">{AI_PERSONA[showPersonaInfo].avatar}</span>
+                    <h3>{AI_PERSONA[showPersonaInfo].name}</h3>
+                    <button className="close-button" onClick={() => setShowPersonaInfo(false)}>×</button>
+                  </div>
+                  <p>{AI_PERSONA[showPersonaInfo].description}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       
-      {renderGameStatus()}
+      {/* Game status with enhanced styling for wins */}
+      <div className={`status-container ${gameStatus === 'win' ? 'winning' : ''}`}>
+        {renderGameStatus()}
+      </div>
       
-      <div className={`board ${gridSize}`}>
+      {/* Game board */}
+      <div className={`board ${gridSize} ${gameStatus === 'win' ? 'winning-board' : ''}`}>
         {Array(board[0].length).fill().map((_, colIndex) => renderColumn(colIndex))}
       </div>
       
-      <button className="reset-button" onClick={resetGame}>
-        Reset Game
-      </button>
+      {/* Options moved below the board */}
+      <div className="below-board-options">
+        {/* Grid size selection moved below board */}
+        {renderGridSizeSelection()}
+        
+        {/* Player color moved below board */}
+        {gameMode === 'player-vs-ai' && (
+          <div className="setting-group player-color-section">
+            <label>Your Color:</label>
+            <div className="button-group">
+              <button 
+                className={`color-button player1 ${playerColor === PLAYER_1 ? 'active' : ''}`}
+                onClick={() => changePlayerColor(PLAYER_1)}
+              >
+                Red
+              </button>
+              <button 
+                className={`color-button player2 ${playerColor === PLAYER_2 ? 'active' : ''}`}
+                onClick={() => changePlayerColor(PLAYER_2)}
+              >
+                Yellow
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Reset button */}
+        <button className="reset-button" onClick={resetGame}>
+          Reset Game
+        </button>
+      </div>
       
       <div className="instructions">
         <h3>How to Play:</h3>
@@ -406,9 +518,19 @@ const Connect4Game = () => {
           text-align: center;
         }
         
+        .status-container {
+          width: 100%;
+          max-width: 500px;
+          margin-bottom: 20px;
+          transition: all 0.3s ease;
+        }
+        
+        .status-container.winning {
+          transform: scale(1.05);
+        }
+        
         .status {
           font-size: clamp(1.1rem, 3vw, 1.3rem);
-          margin-bottom: 20px;
           font-weight: 600;
           text-align: center;
           min-height: 40px;
@@ -420,6 +542,36 @@ const Connect4Game = () => {
           align-items: center;
           justify-content: center;
           gap: 8px;
+        }
+        
+        .win-status {
+          background: linear-gradient(145deg, #2ecc71, #27ae60);
+          color: white;
+          padding: 15px;
+          animation: celebrate 1s ease;
+          box-shadow: 0 8px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .trophy-icon {
+          font-size: 1.8rem;
+          margin-right: 10px;
+          animation: bounce 1s infinite;
+        }
+        
+        .win-text {
+          font-size: clamp(1.2rem, 4vw, 1.5rem);
+          font-weight: 700;
+        }
+        
+        @keyframes celebrate {
+          0% { transform: scale(0.8); opacity: 0; }
+          50% { transform: scale(1.1); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
         
         .status.thinking {
@@ -503,6 +655,7 @@ const Connect4Game = () => {
           box-shadow: 0 0 15px 5px #2ecc71, inset 0 0 15px rgba(0, 0, 0, 0.2);
           animation: pulse 1.5s infinite;
           z-index: 1;
+          transform: scale(1.05);
         }
         
         .cell.dropping {
@@ -559,6 +712,26 @@ const Connect4Game = () => {
           padding: 20px;
           border-radius: 12px;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .below-board-options {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          margin: 25px 0;
+          width: 100%;
+          max-width: 500px;
+        }
+        
+        .winning-board {
+          animation: boardWin 1s ease;
+          box-shadow: 0 15px 30px rgba(46, 204, 113, 0.3), inset 0 -5px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes boardWin {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0); }
         }
         
         .setting-group {
@@ -645,11 +818,11 @@ const Connect4Game = () => {
         
         .persona-card {
           flex: 1;
-          min-width: 120px;
-          max-width: 180px;
+          min-width: 100px;
+          max-width: 160px;
           background: linear-gradient(145deg, #f5f7fa, #e4e9f2);
           border-radius: 12px;
-          padding: 15px;
+          padding: 12px 8px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -671,8 +844,8 @@ const Connect4Game = () => {
         }
         
         .persona-avatar {
-          font-size: 2.5rem;
-          margin-bottom: 10px;
+          font-size: 2.2rem;
+          margin-bottom: 8px;
         }
         
         .persona-name {
@@ -776,7 +949,7 @@ const Connect4Game = () => {
           .persona-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            gap: 6px;
             width: 100%;
           }
           
@@ -784,13 +957,13 @@ const Connect4Game = () => {
             min-width: 0;
             width: 100%;
             max-width: none;
-            padding: 10px 5px;
+            padding: 8px 4px;
             margin: 0;
           }
           
           .persona-avatar {
-            font-size: 1.8rem;
-            margin-bottom: 5px;
+            font-size: 1.6rem;
+            margin-bottom: 4px;
           }
           
           .persona-name {
@@ -863,8 +1036,8 @@ const Connect4Game = () => {
           }
           
           .persona-avatar {
-            font-size: 1.5rem;
-            margin-bottom: 3px;
+            font-size: 1.4rem;
+            margin-bottom: 2px;
           }
           
           .persona-name {
